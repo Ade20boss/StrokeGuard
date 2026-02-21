@@ -1,0 +1,36 @@
+C:\Users\pc\OneDrive\Desktop\Usii's works\cavista\StrokeGuard\client\node_modules\.pnpm\@prisma+client@7.4.1_prisma_6ce4ee8affe235b151380cfa069ddd54\node_modules\@prisma\client\src\runtime\getPrismaClient.ts:260
+        throw new PrismaClientInitializationError(
+              ^
+
+PrismaClientInitializationError: `PrismaClient` needs to be constructed with a non-empty, valid `PrismaClientOptions`:
+
+```
+new PrismaClient({
+  ...
+})
+```
+
+or
+
+```
+constructor() {
+  super({ ... });
+}
+```
+          
+    at new t (C:\Users\pc\OneDrive\Desktop\Usii's works\cavista\StrokeGuard\client\node_modules\.pnpm\@prisma+client@7.4.1_prisma_6ce4ee8affe235b151380cfa069ddd54\node_modules\@prisma\client\src\runtime\getPrismaClient.ts:260:15)
+    at <anonymous> (C:\Users\pc\OneDrive\Desktop\Usii's works\cavista\StrokeGuard\client\test-prisma.ts:3:16)
+    at Object.<anonymous> (C:\Users\pc\OneDrive\Desktop\Usii's works\cavista\StrokeGuard\client\test-prisma.ts:17:6)
+    at Module._compile (node:internal/modules/cjs/loader:1804:14)
+    at Object.transformer (C:\Users\pc\AppData\Local\npm-cache\_npx\fd45a72a545557e9\node_modules\tsx\dist\register-D46fvsV_.cjs:3:1104)
+    at Module.load (node:internal/modules/cjs/loader:1525:32)
+    at Module._load (node:internal/modules/cjs/loader:1327:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at loadCJSModuleWithModuleLoad (node:internal/modules/esm/translators:339:3) {
+  clientVersion: '7.4.1',
+  errorCode: undefined,
+  retryable: undefined
+}
+
+Node.js v24.13.1

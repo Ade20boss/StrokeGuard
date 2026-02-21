@@ -1,8 +1,10 @@
-import Link from "next/link";
-import { Heart } from "lucide-react";
-import { ImageWithFallback } from "@/components/ImageWithFallback";
+import { useNavigate } from 'react-router';
+import { Heart } from 'lucide-react';
+import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 
-export default function WelcomePage() {
+export function Welcome() {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen flex">
       {/* Left Panel - Image */}
@@ -21,11 +23,11 @@ export default function WelcomePage() {
             <div className="w-10 h-10 rounded-xl bg-white/90 flex items-center justify-center">
               <Heart className="w-6 h-6 text-[#0EA5E9]" fill="#0EA5E9" />
             </div>
-            <h1 className="text-white text-2xl font-bold">
+            <h1 className="text-white text-2xl font-bold" style={{ fontFamily: 'var(--font-sans)' }}>
               StrokeGuard
             </h1>
           </div>
-          <p className="text-white/90 text-sm">
+          <p className="text-white/90 text-sm" style={{ fontFamily: 'var(--font-sans)' }}>
             Predict. Recognize. Respond.
           </p>
         </div>
@@ -36,41 +38,52 @@ export default function WelcomePage() {
         <div className="w-full max-w-md">
           {/* Wordmark */}
           <div className="mb-8">
-            <h2 className="text-[#0F172A] text-2xl font-bold mb-2">
+            <h2 
+              className="text-[#0F172A] text-2xl font-bold mb-2"
+              style={{ fontFamily: 'var(--font-sans)' }}
+            >
               StrokeGuard
             </h2>
           </div>
 
           {/* Main heading */}
-          <h1 className="text-[#0F172A] text-[32px] font-bold leading-tight mb-4">
+          <h1 
+            className="text-[#0F172A] text-[32px] font-bold leading-tight mb-4"
+            style={{ fontFamily: 'var(--font-sans)' }}
+          >
             Your stroke awareness starts here.
           </h1>
 
           {/* Subtext */}
-          <p className="text-[#64748B] text-[15px] mb-8">
+          <p 
+            className="text-[#64748B] text-[15px] mb-8"
+            style={{ fontFamily: 'var(--font-sans)' }}
+          >
             Set up takes 4 minutes. It could save your life or someone you love.
           </p>
 
           {/* Get Started Button */}
-          <Link
-            href="/signup"
-            className="flex items-center justify-center w-full h-12 bg-[#0EA5E9] text-white rounded-full text-[15px] font-medium hover:bg-[#0EA5E9]/90 transition-colors mb-4"
+          <button
+            onClick={() => navigate('/signup')}
+            className="w-full h-12 bg-[#0EA5E9] text-white rounded-full text-[15px] font-medium hover:bg-[#0EA5E9]/90 transition-colors mb-4"
+            style={{ fontFamily: 'var(--font-sans)' }}
           >
             Get Started
-          </Link>
+          </button>
 
           {/* Sign in link */}
           <div className="text-center mb-12">
-            <Link
-              href="/signin"
+            <button
+              onClick={() => navigate('/signin')}
               className="text-[#0EA5E9] text-sm hover:underline"
+              style={{ fontFamily: 'var(--font-sans)' }}
             >
               I already have an account
-            </Link>
+            </button>
           </div>
 
           {/* Bottom credential */}
-          <div className="flex items-center justify-center gap-2 text-[#9CA3AF] text-[11px]">
+          <div className="flex items-center justify-center gap-2 text-[#9CA3AF] text-[11px]" style={{ fontFamily: 'var(--font-sans)' }}>
             <Heart className="w-3 h-3 text-[#0EA5E9]" />
             <span>Backed by AHA Life's Essential 8 framework</span>
           </div>
