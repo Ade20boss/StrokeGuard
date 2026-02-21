@@ -1,54 +1,117 @@
-import { createBrowserRouter } from 'react-router';
-import { Welcome } from './pages/Welcome';
-import { SignUp } from './pages/SignUp';
-import { SignIn } from './pages/SignIn';
-import { HealthProfile } from './pages/HealthProfile';
-import { EmergencyContacts } from './pages/EmergencyContacts';
-import { Permissions } from './pages/Permissions';
-import { SmartwatchPairing } from './pages/SmartwatchPairing';
-import { SetupComplete } from './pages/SetupComplete';
-import { Dashboard } from './pages/Dashboard';
-import { NotFound } from './pages/NotFound';
+import { createBrowserRouter } from "react-router";
+import Welcome from "./pages/onboarding/welcome";
+import CreateAccount from "./pages/onboarding/create-account";
+import HealthProfile from "./pages/onboarding/health-profile";
+import EmergencyContacts from "./pages/onboarding/emergency-contacts";
+import Permissions from "./pages/onboarding/permissions";
+import ConnectWatch from "./pages/onboarding/connect-watch";
+import SetupComplete from "./pages/onboarding/setup-complete";
+import Dashboard from "./pages/dashboard";
+import DashboardUpgraded from "./pages/dashboard-upgraded";
+import FASTCheck from "./pages/fast-check";
+import Education from "./pages/education";
+import DeviceHub from "./pages/device";
+import SOSScreen from "./pages/sos";
+import RiskScore from "./pages/risk-score";
+import History from "./pages/history";
+import ContactsPage from "./pages/contacts";
 
 export const router = createBrowserRouter([
+  // Onboarding flow
   {
-    path: '/',
+    path: "/",
     Component: Welcome,
   },
   {
-    path: '/signup',
-    Component: SignUp,
+    path: "/welcome",
+    Component: Welcome,
   },
   {
-    path: '/signin',
-    Component: SignIn,
+    path: "/auth/signup",
+    Component: CreateAccount,
   },
   {
-    path: '/health-profile',
+    path: "/auth/profile",
     Component: HealthProfile,
   },
   {
-    path: '/emergency-contacts',
+    path: "/auth/contacts",
     Component: EmergencyContacts,
   },
   {
-    path: '/permissions',
+    path: "/auth/permissions",
     Component: Permissions,
   },
   {
-    path: '/smartwatch-pairing',
-    Component: SmartwatchPairing,
+    path: "/auth/device",
+    Component: ConnectWatch,
   },
   {
-    path: '/setup-complete',
+    path: "/auth/complete",
+    Component: SetupComplete,
+  },
+  
+  // Main app screens
+  {
+    path: "/dashboard",
+    Component: DashboardUpgraded,
+  },
+  {
+    path: "/fast-check",
+    Component: FASTCheck,
+  },
+  {
+    path: "/education",
+    Component: Education,
+  },
+  {
+    path: "/device",
+    Component: DeviceHub,
+  },
+  {
+    path: "/sos",
+    Component: SOSScreen,
+  },
+  {
+    path: "/risk-score",
+    Component: RiskScore,
+  },
+  {
+    path: "/history",
+    Component: History,
+  },
+  {
+    path: "/contacts",
+    Component: ContactsPage,
+  },
+  
+  // Legacy routes (redirect to new paths)
+  {
+    path: "/create-account",
+    Component: CreateAccount,
+  },
+  {
+    path: "/health-profile",
+    Component: HealthProfile,
+  },
+  {
+    path: "/emergency-contacts",
+    Component: EmergencyContacts,
+  },
+  {
+    path: "/permissions",
+    Component: Permissions,
+  },
+  {
+    path: "/connect-watch",
+    Component: ConnectWatch,
+  },
+  {
+    path: "/setup-complete",
     Component: SetupComplete,
   },
   {
-    path: '/dashboard',
+    path: "/dashboard-mobile",
     Component: Dashboard,
-  },
-  {
-    path: '*',
-    Component: NotFound,
   },
 ]);

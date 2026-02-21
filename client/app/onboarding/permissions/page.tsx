@@ -46,14 +46,45 @@ export default function PermissionsPage() {
     }
   ]);
 
-  const handleGrantPermissions = () => {
-    // Simulate granting permissions
-    setPermissions(permissions.map(p => ({ ...p, status: 'granted' })));
-    
-    // Navigate after a short delay
-    setTimeout(() => {
-      router.push('/onboarding/setup-complete');
-    }, 500);
+  const handleGrantPermissions = async () => {
+    try {
+      // 1. Request Camera and Microphone
+      await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      setPermissions(prev => 
+        prev.map(p => (p.id === 'camera' || p.id === 'microphone') ? { ...p, status: 'granted' } : p)
+      );
+
+      // 2. Request Location
+      await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject);
+      });
+      setPermissions(prev => 
+        prev.map(p => p.id === 'location' ? { ...p, status: 'granted' } : p)
+      );
+
+      // 3. Request Notifications
+      if ('Notification' in window) {
+        const notificationPermission = await Notification.requestPermission();
+        if (notificationPermission === 'granted') {
+          setPermissions(prev => 
+            prev.map(p => p.id === 'notifications' ? { ...p, status: 'granted' } : p)
+          );
+        }
+      }
+
+      // Navigate after all permissions are handled
+      setTimeout(() => {
+        router.push('/onboarding/setup-complete');
+      }, 1000);
+
+    } catch (error) {
+      console.error('Error requesting permissions:', error);
+      // Optional: Handle denied permissions or just proceed anyway for onboarding
+      // We will proceed for now after a short delay even if some are denied
+      setTimeout(() => {
+        router.push('/onboarding/setup-complete');
+      }, 1000);
+    }
   };
 
   const getStatusBadge = (status: Permission['status']) => {

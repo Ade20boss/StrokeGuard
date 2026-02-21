@@ -1,29 +1,6 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* StrokeGuard Color System */
-  --color-navy-base: #050A14;
-  --color-navy-card: #0D1526;
-  --color-navy-deep: #0D1F3C;
-  --color-navy-border: #1E2D45;
-  --color-navy-input: #081020;
-  
-  --color-blue-primary: #0EA5E9;
-  --color-blue-glow: #3B82F6;
-  --color-red-emergency: #EF4444;
-  --color-green-success: #10B981;
-  --color-amber-recommended: #F59E0B;
-  
-  --color-white: #FFFFFF;
-  --color-slate-300: #CBD5E1;
-  --color-slate-400: #94A3B8;
-  --color-slate-500: #64748B;
-  
-  /* Typography */
-  --font-sans: 'DM Sans', system-ui, -apple-system, sans-serif;
-  --font-mono: 'Space Mono', monospace;
-  
-  /* Legacy theme vars for compatibility */
   --font-size: 16px;
   --background: #ffffff;
   --foreground: oklch(0.145 0 0);

@@ -1,0 +1,36 @@
+app/fast-check/page.tsx(1412,36): error TS2552: Cannot find name 'navigate'. Did you mean 'navigator'?
+design page/src/app/App.tsx(1,32): error TS2307: Cannot find module 'react-router' or its corresponding type declarations.
+design page/src/app/components/dashboard/sidebar.tsx(3,29): error TS2307: Cannot find module 'react-router' or its corresponding type declarations.
+design page/src/app/components/ui/calendar.tsx(63,9): error TS2353: Object literal may only specify known properties, and 'IconLeft' does not exist in type 'Partial<CustomComponents>'.
+design page/src/app/components/ui/calendar.tsx(63,22): error TS7031: Binding element 'className' implicitly has an 'any' type.
+design page/src/app/components/ui/calendar.tsx(66,23): error TS7031: Binding element 'className' implicitly has an 'any' type.
+design page/src/app/components/ui/chart.tsx(109,3): error TS2339: Property 'payload' does not exist on type 'Omit<Props<ValueType, NameType>, PropertiesReadFromContext> & { active?: boolean | undefined; allowEscapeViewBox?: AllowInDimension | undefined; ... 24 more ...; wrapperStyle?: CSSProperties | undefined; } & ClassAttributes<...> & HTMLAttributes<...> & { ...; }'.
+design page/src/app/components/ui/chart.tsx(114,3): error TS2339: Property 'label' does not exist on type 'Omit<Props<ValueType, NameType>, PropertiesReadFromContext> & { active?: boolean | undefined; allowEscapeViewBox?: AllowInDimension | undefined; ... 24 more ...; wrapperStyle?: CSSProperties | undefined; } & ClassAttributes<...> & HTMLAttributes<...> & { ...; }'.
+design page/src/app/components/ui/chart.tsx(182,23): error TS7006: Parameter 'item' implicitly has an 'any' type.
+design page/src/app/components/ui/chart.tsx(182,29): error TS7006: Parameter 'index' implicitly has an 'any' type.
+design page/src/app/components/ui/chart.tsx(260,39): error TS2344: Type '"payload" | "verticalAlign"' does not satisfy the constraint '"string" | "id" | "cursor" | "name" | "result" | "height" | "type" | "from" | "style" | "path" | "seed" | "format" | "filter" | "fill" | "values" | "children" | "className" | "local" | ... 431 more ... | "portal"'.
+  Type '"payload"' is not assignable to type '"string" | "id" | "cursor" | "name" | "result" | "height" | "type" | "from" | "style" | "path" | "seed" | "format" | "filter" | "fill" | "values" | "children" | "className" | "local" | ... 431 more ... | "portal"'.
+design page/src/app/components/ui/chart.tsx(266,17): error TS2339: Property 'length' does not exist on type '{}'.
+design page/src/app/components/ui/chart.tsx(278,16): error TS2339: Property 'map' does not exist on type '{}'.
+design page/src/app/components/ui/chart.tsx(278,21): error TS7006: Parameter 'item' implicitly has an 'any' type.
+design page/src/app/components/ui/resizable.tsx(12,51): error TS2339: Property 'PanelGroup' does not exist on type 'typeof import("C:/Users/pc/OneDrive/Desktop/Usii's works/cavista/StrokeGuard/client/node_modules/.pnpm/react-resizable-panels@4.6._0b63557cd224751a8f96308765dea351/node_modules/react-resizable-panels/dist/react-resizable-panels")'.
+design page/src/app/components/ui/resizable.tsx(14,25): error TS2339: Property 'PanelGroup' does not exist on type 'typeof import("C:/Users/pc/OneDrive/Desktop/Usii's works/cavista/StrokeGuard/client/node_modules/.pnpm/react-resizable-panels@4.6._0b63557cd224751a8f96308765dea351/node_modules/react-resizable-panels/dist/react-resizable-panels")'.
+design page/src/app/components/ui/resizable.tsx(35,51): error TS2339: Property 'PanelResizeHandle' does not exist on type 'typeof import("C:/Users/pc/OneDrive/Desktop/Usii's works/cavista/StrokeGuard/client/node_modules/.pnpm/react-resizable-panels@4.6._0b63557cd224751a8f96308765dea351/node_modules/react-resizable-panels/dist/react-resizable-panels")'.
+design page/src/app/components/ui/resizable.tsx(39,25): error TS2339: Property 'PanelResizeHandle' does not exist on type 'typeof import("C:/Users/pc/OneDrive/Desktop/Usii's works/cavista/StrokeGuard/client/node_modules/.pnpm/react-resizable-panels@4.6._0b63557cd224751a8f96308765dea351/node_modules/react-resizable-panels/dist/react-resizable-panels")'.
+design page/src/app/components/ui/resizable.tsx(52,26): error TS2339: Property 'PanelResizeHandle' does not exist on type 'typeof import("C:/Users/pc/OneDrive/Desktop/Usii's works/cavista/StrokeGuard/client/node_modules/.pnpm/react-resizable-panels@4.6._0b63557cd224751a8f96308765dea351/node_modules/react-resizable-panels/dist/react-resizable-panels")'.
+design page/src/app/pages/dashboard-upgraded.tsx(2,29): error TS2307: Cannot find module 'react-router' or its corresponding type declarations.
+design page/src/app/pages/fast-check.tsx(2,29): error TS2307: Cannot find module 'react-router' or its corresponding type declarations.
+design page/src/app/pages/onboarding/connect-watch.tsx(2,29): error TS2307: Cannot find module 'react-router' or its corresponding type declarations.
+design page/src/app/pages/onboarding/create-account.tsx(2,29): error TS2307: Cannot find module 'react-router' or its corresponding type declarations.
+design page/src/app/pages/onboarding/emergency-contacts.tsx(2,29): error TS2307: Cannot find module 'react-router' or its corresponding type declarations.
+design page/src/app/pages/onboarding/health-profile.tsx(2,29): error TS2307: Cannot find module 'react-router' or its corresponding type declarations.
+design page/src/app/pages/onboarding/permissions.tsx(2,29): error TS2307: Cannot find module 'react-router' or its corresponding type declarations.
+design page/src/app/pages/onboarding/setup-complete.tsx(1,29): error TS2307: Cannot find module 'react-router' or its corresponding type declarations.
+design page/src/app/pages/onboarding/welcome.tsx(2,29): error TS2307: Cannot find module 'react-router' or its corresponding type declarations.
+design page/src/app/pages/risk-score.tsx(2,29): error TS2307: Cannot find module 'react-router' or its corresponding type declarations.
+design page/src/app/pages/sos.tsx(1,29): error TS2307: Cannot find module 'react-router' or its corresponding type declarations.
+design page/src/app/routes.ts(1,37): error TS2307: Cannot find module 'react-router' or its corresponding type declarations.
+design page/src/main.tsx(3,19): error TS5097: An import path can only end with a '.tsx' extension when 'allowImportingTsExtensions' is enabled.
+design page/vite.config.ts(1,30): error TS2307: Cannot find module 'vite' or its corresponding type declarations.
+design page/vite.config.ts(3,25): error TS2307: Cannot find module '@tailwindcss/vite' or its corresponding type declarations.
+design page/vite.config.ts(4,19): error TS2307: Cannot find module '@vitejs/plugin-react' or its corresponding type declarations.

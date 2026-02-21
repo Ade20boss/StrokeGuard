@@ -18,8 +18,9 @@ model User {
   image                  String?
   hasCompletedOnboarding Boolean   @default(false)
 
-  healthProfile     HealthProfile?
-  emergencyContacts EmergencyContact[]
+  healthProfile      HealthProfile?
+  emergencyContacts  EmergencyContact[]
+  monitoringSessions MonitoringSession[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -54,4 +55,49 @@ model EmergencyContact {
   relationship String
 
   createdAt DateTime @default(now())
+}
+
+enum MonitoringMode {
+  QUICK_CHECK
+  ACTIVE
+}
+
+model MonitoringSession {
+  id                    String         @id @default(cuid())
+  userId                String
+  user                  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mode                  MonitoringMode
+  startedAt             DateTime       @default(now())
+  endedAt               DateTime?
+  durationSeconds       Int?
+  finalScore            Float?
+  avgPulseRate          Float?
+  avgPrv                Float?
+  riskDeltaFromBaseline Float?
+  autoStopped           Boolean        @default(false)
+
+  // Backend sync fields
+  backendSessionId String?
+  triageStatus     String? // GREEN, YELLOW, RED
+  backendSdnn      Float?
+  alertFailure     Boolean @default(false)
+  aiAdvice         String?
+
+  vitals VitalSample[]
+
+  @@index([userId])
+  @@index([startedAt])
+}
+
+model VitalSample {
+  id                    String            @id @default(cuid())
+  sessionId             String
+  session               MonitoringSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  pulseRate             Float
+  prvSdnn               Float
+  computedScoreAtSample Float?
+  recordedAt            DateTime          @default(now())
+
+  @@index([sessionId])
+  @@index([recordedAt])
 }

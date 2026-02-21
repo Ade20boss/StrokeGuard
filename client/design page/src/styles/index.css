@@ -1,16 +1,4 @@
 @import './fonts.css';
 @import './tailwind.css';
 @import './theme.css';
-
-body {
-  font-family: var(--font-sans);
-  background: #050A14;
-  color: #FFFFFF;
-  margin: 0;
-  padding: 0;
-  overflow-x: hidden;
-}
-
-* {
-  box-sizing: border-box;
-}
+@import './dashboard.css';

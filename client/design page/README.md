@@ -1,7 +1,7 @@
 
-  # StrokeGuard Onboarding Flow
+  # Brain Training App
 
-  This is a code bundle for StrokeGuard Onboarding Flow. The original project is available at https://www.figma.com/design/EFBwmu6VAjFjwEtWGyi2BP/StrokeGuard-Onboarding-Flow.
+  This is a code bundle for Brain Training App. The original project is available at https://www.figma.com/design/A68Bcje62XcGK3HpUOA2it/Brain-Training-App.
 
   ## Running the code
 

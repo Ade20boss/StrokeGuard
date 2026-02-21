@@ -12,7 +12,7 @@ const ContactUpdateSchema = z.object({
 // PATCH /api/user/emergency-contacts/[id] — Update an existing emergency contact
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -20,6 +20,7 @@ export async function PATCH(
   }
 
   try {
+    const resolvedParams = await params;
     const body = await request.json();
     const validated = ContactUpdateSchema.safeParse(body);
 
@@ -32,7 +33,7 @@ export async function PATCH(
 
     // Verify ownership before update
     const existing = await prisma.emergencyContact.findUnique({
-      where: { id: params.id },
+      where: { id: resolvedParams.id },
     });
 
     if (!existing || existing.userId !== session.user.id) {
@@ -40,7 +41,7 @@ export async function PATCH(
     }
 
     const contact = await prisma.emergencyContact.update({
-      where: { id: params.id },
+      where: { id: resolvedParams.id },
       data: validated.data,
       select: { id: true, name: true, phone: true, relationship: true },
     });
@@ -55,7 +56,7 @@ export async function PATCH(
 // DELETE /api/user/emergency-contacts/[id] — Remove an emergency contact
 export async function DELETE(
   _request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -63,16 +64,17 @@ export async function DELETE(
   }
 
   try {
+    const resolvedParams = await params;
     // Verify ownership before delete
     const existing = await prisma.emergencyContact.findUnique({
-      where: { id: params.id },
+      where: { id: resolvedParams.id },
     });
 
     if (!existing || existing.userId !== session.user.id) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
-    await prisma.emergencyContact.delete({ where: { id: params.id } });
+    await prisma.emergencyContact.delete({ where: { id: resolvedParams.id } });
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {

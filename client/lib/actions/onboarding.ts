@@ -127,6 +127,8 @@ export async function addEmergencyContact(formData: FormData) {
       },
     });
     revalidatePath("/onboarding/emergency-contacts");
+    revalidatePath("/dashboard");
+    revalidatePath("/contacts");
     return { success: true };
   } catch (error) {
     return { error: "Failed to add contact" };
@@ -142,6 +144,8 @@ export async function deleteEmergencyContact(id: string) {
       where: { id, userId: session.user.id },
     });
     revalidatePath("/onboarding/emergency-contacts");
+    revalidatePath("/dashboard");
+    revalidatePath("/contacts");
     return { success: true };
   } catch (error) {
     return { error: "Failed to delete contact" };

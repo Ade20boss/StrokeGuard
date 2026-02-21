@@ -2,7 +2,3 @@
 @source '../**/*.{js,ts,jsx,tsx}';
 
 @import 'tw-animate-css';
-
-@utility bg-gradient-radial {
-  background: radial-gradient(circle at center, var(--tw-gradient-stops));
-}
