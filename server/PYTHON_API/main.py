@@ -25,8 +25,6 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="StrokeGuard API Gateway", version="2.1.0")
 
-# FIX: allow_origins=["*"] is incompatible with allow_credentials=True per the CORS spec.
-# Using explicit origins list. Set ALLOWED_ORIGINS in your .env for production.
 _raw_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:8000")
 ALLOWED_ORIGINS = [o.strip() for o in _raw_origins.split(",")]
 
@@ -55,8 +53,6 @@ init_db()
 
 def get_db_row(table: str, entry_id: str) -> dict:
     col = "state" if table == "patients" else "profile_data"
-    # NOTE: `col` and `table` are derived from internal constants only, not user input,
-    # so f-string interpolation here is safe from SQL injection.
     with sqlite3.connect("strokeguard.db") as conn:
         cursor = conn.execute(
             f"SELECT {col} FROM {table} WHERE id=?", (str(entry_id),)
@@ -94,7 +90,6 @@ class ProfilePayload(BaseModel):
     age: int
     history: str
     recent_activity: str
-    # FIX: Emergency contact is now per-patient, not hardcoded in the codebase.
     emergency_contact: str  # E.164 format, e.g. "+2347069547832"
 
     @field_validator("emergency_contact")
@@ -203,7 +198,6 @@ def generate_ai_coach(
         )
         return model.generate_content(prompt).text.strip()
     except Exception as e:
-        # FIX: Log the actual exception instead of silently swallowing it.
         logger.error("Gemini AI coach failed for patient %s: %s", patient_id, e)
         name = profile.get("name", "Patient")
         return (
@@ -245,8 +239,6 @@ def send_emergency_sms(
         )
         logger.info("Emergency SMS sent for patient %s to %s", patient_id, emergency_contact)
     except Exception as e:
-        # FIX: Log to both logger and DB so the failure is visible in monitoring
-        # and surfaced to the frontend via the /status endpoint.
         logger.error(
             "Twilio SMS FAILED for patient %s (contact: %s): %s",
             patient_id,
@@ -259,7 +251,6 @@ def send_emergency_sms(
 # --- API ENDPOINTS ---
 @app.post("/api/v1/patient/profile")
 async def update_profile(payload: ProfilePayload):
-    # FIX: Use .model_dump() — .dict() is deprecated in Pydantic v2.
     save_db_row("profiles", payload.patient_id, payload.model_dump())
     return {"status": "success", "message": "Profile updated"}
 
@@ -309,7 +300,7 @@ async def sync_vitals(payload: VitalsPayload, background_tasks: BackgroundTasks)
 
     # 3. Mode-specific triggers
 
-    # FIX: AI coach regenerates on every YELLOW sync, not just on first transition.
+    # AI coach regenerates on every YELLOW sync, not just on first transition.
     # This ensures advice stays fresh if vitals change while remaining in YELLOW.
     if final_status == "YELLOW":
         ai_advice = generate_ai_coach(
@@ -330,7 +321,7 @@ async def sync_vitals(payload: VitalsPayload, background_tasks: BackgroundTasks)
             sdnn,
             payload.latitude,
             payload.longitude,
-            profile["emergency_contact"],  # FIX: per-patient contact from profile
+            profile["emergency_contact"],  # per-patient contact from profile
         )
         sms_sent = True
 
