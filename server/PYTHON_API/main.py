@@ -11,12 +11,13 @@ from pydantic import BaseModel, field_validator
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from twilio.rest import Client
 
 # --- INITIALIZATION ---
 load_dotenv()
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+client = genai.Client()
 
 logging.basicConfig(
     level=logging.INFO,
@@ -184,7 +185,7 @@ def calculate_composite_risk(
 async def generate_ai_coach(
     patient_id: str, sys: int, dia: int, hrv: float, aha: int
 ) -> str:
-    """AI Clinical Reasoning via Gemini 1.5 Pro (Asynchronous)."""
+    """AI Clinical Reasoning via Gemini 3.1 Pro (using the NEW google-genai SDK)."""
     profile = get_db_row("profiles", patient_id)
     if not profile:
         profile = {"name": "Patient", "age": "Unknown", "history": "None", "recent_activity": "Unknown"}
@@ -193,18 +194,23 @@ async def generate_ai_coach(
         "You are StrokeGuard AI. Analyze vitals vs history. Warm, calming tone. "
         "No diagnosis. No markdown. Detailed and comprehensive actionable next steps."
     )
+    
     try:
-        model = genai.GenerativeModel("gemini-1.5-pro", system_instruction=system_instr)
-        prompt = (
-            f"Patient: {profile.get('name')}, {profile.get('age')}. "
-            f"History: {profile.get('history')}. "
-            f"Vitals: BP {sys}/{dia}, PRV {hrv}ms, AHA Score {aha}. "
-            f"Current Context: {profile.get('recent_activity')}. "
-            "Task: Provide immediate triage advice for this Yellow state."
+        # The new SDK uses client.aio for async/await calls
+        response = await client.aio.models.generate_content(
+            model="gemini-3.1-pro",
+            contents=(
+                f"Patient: {profile.get('name')}, {profile.get('age')}. "
+                f"History: {profile.get('history')}. "
+                f"Vitals: BP {sys}/{dia}, PRV {hrv}ms, AHA Score {aha}. "
+                f"Current Context: {profile.get('recent_activity')}. "
+                "Task: Provide immediate triage advice for this Yellow state."
+            ),
+            # System instructions now live inside a config object
+            config=types.GenerateContentConfig(
+                system_instruction=system_instr,
+            )
         )
-        
-        # FIX: Await the async version of the generation method
-        response = await model.generate_content_async(prompt)
         return response.text.strip()
         
     except Exception as e:
