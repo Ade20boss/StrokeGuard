@@ -500,7 +500,3 @@ async def get_status(patient_id: str):
     # Surface alert_failure so the frontend can warn the patient that
     # the emergency SMS may not have been delivered.
     return {**state, "ui_action": ui_action}
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("main:app", host="0.0.0.1", port=8000, reload=True)

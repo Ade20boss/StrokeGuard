@@ -1,0 +1,24 @@
+Traceback (most recent call last):
+  File "C:\Users\pc\OneDrive\Desktop\Usii's works\cavista\StrokeGuard\server\PYTHON_API\main.py", line 26, in <module>
+    genai_client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+  File "C:\Users\pc\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\google\genai\client.py", line 426, in __init__
+    self._api_client = self._get_api_client(
+                       ~~~~~~~~~~~~~~~~~~~~^
+        vertexai=vertexai,
+        ^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+        http_options=http_options,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\pc\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\google\genai\client.py", line 474, in _get_api_client
+    return BaseApiClient(
+        vertexai=vertexai,
+    ...<4 lines>...
+        http_options=http_options,
+    )
+  File "C:\Users\pc\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\google\genai\_api_client.py", line 700, in __init__
+    raise ValueError(
+    ...<3 lines>...
+    )
+ValueError: Missing key inputs argument! To use the Google AI API, provide (`api_key`) arguments. To use the Google Cloud API, provide (`vertexai`, `project` & `location`) arguments.
