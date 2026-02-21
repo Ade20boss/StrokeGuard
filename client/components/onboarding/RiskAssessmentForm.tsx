@@ -10,9 +10,10 @@ export default function RiskAssessmentForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     bloodPressure: "",
-    hasDiabetes: false,
-    smokes: false,
-    activityLevel: "moderate",
+    diabetesStatus: "no",
+    smokingStatus: "never",
+    familyHistory: "no",
+    activityLevel: "3-4", // standard tiers: '5+', '3-4', '1-2', '0'
   });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -22,8 +23,9 @@ export default function RiskAssessmentForm() {
     try {
       const formDataToSubmit = new FormData();
       formDataToSubmit.append("bloodPressure", formData.bloodPressure);
-      formDataToSubmit.append("hasDiabetes", String(formData.hasDiabetes));
-      formDataToSubmit.append("smokes", String(formData.smokes));
+      formDataToSubmit.append("diabetesStatus", formData.diabetesStatus);
+      formDataToSubmit.append("smokingStatus", formData.smokingStatus);
+      formDataToSubmit.append("familyHistory", formData.familyHistory);
       formDataToSubmit.append("activityLevel", formData.activityLevel);
 
       const result = await saveRiskAssessment(formDataToSubmit);
@@ -100,73 +102,98 @@ export default function RiskAssessmentForm() {
               />
             </div>
 
-            {/* Diabetes & Smoking */}
-            <div className="grid grid-cols-1 gap-4">
-              <div className="flex items-center justify-between p-4 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-[#ECFDF5] flex items-center justify-center">
-                    <Activity className="w-4 h-4 text-[#10B981]" />
-                  </div>
-                  <span className="text-sm font-medium text-[#374151]">Diagnosed with Diabetes?</span>
+            {/* Diabetes, Smoking, Family History Grid */}
+            <div className="space-y-4">
+              {/* Diabetes */}
+              <div>
+                <label className="block text-[#374151] text-sm font-medium mb-2">
+                  Diagnosed with Diabetes?
+                </label>
+                <div className="grid grid-cols-3 gap-2 p-1 bg-[#F1F5F9] rounded-xl">
+                  {['no', 'unsure', 'yes'].map((status) => (
+                    <button
+                      key={status}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, diabetesStatus: status })}
+                      className={`h-9 rounded-lg text-xs font-medium transition-all ${
+                        formData.diabetesStatus === status
+                          ? 'bg-[#0EA5E9] text-white shadow-sm'
+                          : 'bg-transparent text-[#64748B] hover:text-[#0F172A]'
+                      }`}
+                    >
+                      {status.charAt(0).toUpperCase() + status.slice(1)}
+                    </button>
+                  ))}
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setFormData({ ...formData, hasDiabetes: !formData.hasDiabetes })}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    formData.hasDiabetes ? 'bg-[#0EA5E9]' : 'bg-[#E2E8F0]'
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      formData.hasDiabetes ? 'translate-x-6' : 'translate-x-1'
-                    }`}
-                  />
-                </button>
               </div>
 
-              <div className="flex items-center justify-between p-4 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-[#FEF2F2] flex items-center justify-center">
-                    <Cigarette className="w-4 h-4 text-[#EF4444]" />
-                  </div>
-                  <span className="text-sm font-medium text-[#374151]">Do you currently smoke?</span>
+              {/* Smoking */}
+              <div>
+                <label className="block text-[#374151] text-sm font-medium mb-2">
+                  Smoking Status
+                </label>
+                <div className="grid grid-cols-3 gap-2 p-1 bg-[#F1F5F9] rounded-xl">
+                  {['never', 'former', 'active'].map((status) => (
+                    <button
+                      key={status}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, smokingStatus: status })}
+                      className={`h-9 rounded-lg text-xs font-medium transition-all ${
+                        formData.smokingStatus === status
+                          ? 'bg-[#0EA5E9] text-white shadow-sm'
+                          : 'bg-transparent text-[#64748B] hover:text-[#0F172A]'
+                      }`}
+                    >
+                      {status.charAt(0).toUpperCase() + status.slice(1)}
+                    </button>
+                  ))}
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setFormData({ ...formData, smokes: !formData.smokes })}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    formData.smokes ? 'bg-[#0EA5E9]' : 'bg-[#E2E8F0]'
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      formData.smokes ? 'translate-x-6' : 'translate-x-1'
-                    }`}
-                  />
-                </button>
               </div>
-            </div>
 
-            {/* Activity Level */}
-            <div>
-              <label className="block text-[#374151] text-sm font-medium mb-2">
-                Usual Activity Level
-              </label>
-              <div className="grid grid-cols-3 gap-2 p-1 bg-[#F1F5F9] rounded-xl">
-                {['sedentary', 'moderate', 'active'].map((level) => (
-                  <button
-                    key={level}
-                    type="button"
-                    onClick={() => setFormData({ ...formData, activityLevel: level })}
-                    className={`h-10 rounded-lg text-xs font-medium transition-all ${
-                      formData.activityLevel === level
-                        ? 'bg-white text-[#0EA5E9] shadow-sm'
-                        : 'bg-transparent text-[#64748B] hover:text-[#0F172A]'
-                    }`}
-                  >
-                    {level.charAt(0).toUpperCase() + level.slice(1)}
-                  </button>
-                ))}
+              {/* Family History */}
+              <div>
+                <label className="block text-[#374151] text-sm font-medium mb-2">
+                  Family History of Stroke?
+                </label>
+                <div className="grid grid-cols-3 gap-2 p-1 bg-[#F1F5F9] rounded-xl">
+                  {['no', 'unsure', 'yes'].map((status) => (
+                    <button
+                      key={status}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, familyHistory: status })}
+                      className={`h-9 rounded-lg text-xs font-medium transition-all ${
+                        formData.familyHistory === status
+                          ? 'bg-[#0EA5E9] text-white shadow-sm'
+                          : 'bg-transparent text-[#64748B] hover:text-[#0F172A]'
+                      }`}
+                    >
+                      {status.charAt(0).toUpperCase() + status.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Activity Level */}
+              <div>
+                <label className="block text-[#374151] text-sm font-medium mb-2">
+                  Weekly Exercise (Sessions)
+                </label>
+                <div className="grid grid-cols-4 gap-2 p-1 bg-[#F1F5F9] rounded-xl">
+                  {['5+', '3-4', '1-2', '0'].map((level) => (
+                    <button
+                      key={level}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, activityLevel: level })}
+                      className={`h-9 rounded-lg text-xs font-medium transition-all ${
+                        formData.activityLevel === level
+                          ? 'bg-[#0EA5E9] text-white shadow-sm'
+                          : 'bg-transparent text-[#64748B] hover:text-[#0F172A]'
+                      }`}
+                    >
+                      {level}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 

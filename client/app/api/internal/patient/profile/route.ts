@@ -39,10 +39,13 @@ export async function POST(req: Request) {
        ? new Date().getFullYear() - new Date(user.healthProfile.dob).getFullYear() 
        : 30; // default
        
+    const hasDiabetes = user.healthProfile?.diabetesStatus === 'yes';
+    const smokes = user.healthProfile?.smokingStatus === 'active';
+    
     let historyStr = "None";
-    if (user.healthProfile?.hasDiabetes && user.healthProfile?.smokes) historyStr = "Diabetes, Smokes";
-    else if (user.healthProfile?.hasDiabetes) historyStr = "Diabetes";
-    else if (user.healthProfile?.smokes) historyStr = "Smokes";
+    if (hasDiabetes && smokes) historyStr = "Diabetes, Smokes";
+    else if (hasDiabetes) historyStr = "Diabetes";
+    else if (smokes) historyStr = "Smokes";
     
     const recentActivity = user.healthProfile?.activityLevel || "Sitting";
 

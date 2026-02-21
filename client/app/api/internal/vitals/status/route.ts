@@ -24,11 +24,15 @@ export async function GET(req: Request) {
     }
 
     const data = await backendRes.json();
+    console.log(">>> PYTHON STATUS RESPONSE:", data);
     
     const triageStatus = data.status || 'GREEN'; // Python API returns "status"
-    let computedScore = 20;
-    if (triageStatus === 'YELLOW') computedScore = 60;
-    if (triageStatus === 'RED') computedScore = 90;
+    
+    // Prioritize the actual risk score if available, otherwise fallback to status-based score
+    // Note: 100 = Perfect Health. So GREEN should be high (~85), RED should be low (~20).
+    const computedScore = data.risk_score ?? (triageStatus === 'RED' ? 20 : triageStatus === 'YELLOW' ? 50 : 85);
+
+    console.log(">>> MAPPED UI STATE:", { triageStatus, score: computedScore });
     
     return NextResponse.json({
         triage_status: triageStatus,

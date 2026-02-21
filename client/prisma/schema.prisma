@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,62 +7,50 @@ datasource db {
 }
 
 model User {
-  id                     String    @id @default(cuid())
+  id                     String              @id @default(cuid())
   name                   String?
-  email                  String    @unique
+  email                  String              @unique
   password               String
   emailVerified          DateTime?
   image                  String?
-  hasCompletedOnboarding Boolean   @default(false)
-
-  healthProfile      HealthProfile?
-  emergencyContacts  EmergencyContact[]
-  monitoringSessions MonitoringSession[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  hasCompletedOnboarding Boolean             @default(false)
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
+  emergencyContacts      EmergencyContact[]
+  healthProfile          HealthProfile?
+  monitoringSessions     MonitoringSession[]
 }
 
 model HealthProfile {
-  id     String @id @default(cuid())
-  userId String @unique
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  dob           DateTime?
-  biologicalSex String? // male, female, other
-  height        Float? // in cm
-  weight        Float? // in kg
-  country       String?
-
-  bloodPressure String? // e.g., "120/80"
-  hasDiabetes   Boolean @default(false)
-  smokes        Boolean @default(false)
-  activityLevel String? // sedentary, moderate, active
-
-  updatedAt DateTime @updatedAt
+  id             String    @id @default(cuid())
+  userId         String    @unique
+  dob            DateTime?
+  biologicalSex  String?
+  height         Float?
+  weight         Float?
+  country        String?
+  bloodPressure  String?
+  activityLevel  String?
+  updatedAt      DateTime  @updatedAt
+  diabetesStatus String?
+  familyHistory  String?
+  smokingStatus  String?
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model EmergencyContact {
-  id     String @id @default(cuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  id           String   @id @default(cuid())
+  userId       String
   name         String
   phone        String
   relationship String
-
-  createdAt DateTime @default(now())
-}
-
-enum MonitoringMode {
-  QUICK_CHECK
-  ACTIVE
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model MonitoringSession {
   id                    String         @id @default(cuid())
   userId                String
-  user                  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   mode                  MonitoringMode
   startedAt             DateTime       @default(now())
   endedAt               DateTime?
@@ -75,15 +60,13 @@ model MonitoringSession {
   avgPrv                Float?
   riskDeltaFromBaseline Float?
   autoStopped           Boolean        @default(false)
-
-  // Backend sync fields
-  backendSessionId String?
-  triageStatus     String? // GREEN, YELLOW, RED
-  backendSdnn      Float?
-  alertFailure     Boolean @default(false)
-  aiAdvice         String?
-
-  vitals VitalSample[]
+  backendSessionId      String?
+  triageStatus          String?
+  backendSdnn           Float?
+  alertFailure          Boolean        @default(false)
+  aiAdvice              String?
+  user                  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vitals                VitalSample[]
 
   @@index([userId])
   @@index([startedAt])
@@ -92,12 +75,17 @@ model MonitoringSession {
 model VitalSample {
   id                    String            @id @default(cuid())
   sessionId             String
-  session               MonitoringSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   pulseRate             Float
   prvSdnn               Float
   computedScoreAtSample Float?
   recordedAt            DateTime          @default(now())
+  session               MonitoringSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
   @@index([sessionId])
   @@index([recordedAt])
+}
+
+enum MonitoringMode {
+  QUICK_CHECK
+  ACTIVE
 }

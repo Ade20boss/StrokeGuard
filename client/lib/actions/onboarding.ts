@@ -16,8 +16,9 @@ const HealthProfileSchema = z.object({
 
 const RiskAssessmentSchema = z.object({
   bloodPressure: z.string().optional(),
-  hasDiabetes: z.coerce.boolean().optional(),
-  smokes: z.coerce.boolean().optional(),
+  diabetesStatus: z.string().optional(),
+  smokingStatus: z.string().optional(),
+  familyHistory: z.string().optional(),
   activityLevel: z.string().optional(),
 });
 
@@ -41,6 +42,17 @@ export async function saveHealthProfile(formData: FormData) {
   }
 
   const { dob, biologicalSex, height, weight, country } = validatedFields.data;
+
+  // Verify user exists to avoid foreign key constraint violation
+  const userExists = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { id: true }
+  });
+
+  if (!userExists) {
+    console.error("User record not found for session ID:", session.user.id);
+    return { error: "Session invalid or user record missing. Please sign out and sign in again." };
+  }
 
   try {
     console.log("Upserting health profile for user:", session.user.id);
@@ -86,20 +98,33 @@ export async function saveRiskAssessment(formData: FormData) {
     return { error: "Invalid fields provided." };
   }
 
-  const { bloodPressure, hasDiabetes, smokes, activityLevel } = validatedFields.data;
+  const { bloodPressure, diabetesStatus, smokingStatus, familyHistory, activityLevel } = validatedFields.data;
+  console.log("Saving risk assessment for user:", session.user.id, validatedFields.data);
+
+  // Verify user exists
+  const userExists = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { id: true }
+  });
+
+  if (!userExists) {
+    return { error: "Session invalid. Please sign in again." };
+  }
 
   try {
     await prisma.healthProfile.update({
       where: { userId: session.user.id },
       data: {
         bloodPressure,
-        hasDiabetes: !!hasDiabetes,
-        smokes: !!smokes,
+        diabetesStatus,
+        smokingStatus,
+        familyHistory,
         activityLevel,
       },
     });
-  } catch (error) {
-    return { error: "Failed to save risk assessment." };
+  } catch (error: any) {
+    console.error("Prisma error in saveRiskAssessment:", error);
+    return { error: "Failed to save risk assessment: " + error.message };
   }
 
   revalidatePath("/onboarding/risk-assessment");
@@ -120,6 +145,13 @@ export async function addEmergencyContact(formData: FormData) {
   if (!validated.success) return { error: "Invalid data" };
 
   try {
+    const userExists = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { id: true }
+    });
+
+    if (!userExists) return { error: "Unauthorized" };
+
     await prisma.emergencyContact.create({
       data: {
         userId: session.user.id,
@@ -155,6 +187,13 @@ export async function deleteEmergencyContact(id: string) {
 export async function finalizeOnboarding() {
   const session = await auth();
   if (!session?.user?.id) return { error: "Unauthorized" };
+
+  const userExists = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { id: true }
+  });
+
+  if (!userExists) return { error: "Unauthorized" };
 
   await prisma.user.update({
     where: { id: session.user.id },

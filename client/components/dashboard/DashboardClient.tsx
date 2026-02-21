@@ -14,6 +14,7 @@ import { HRVOrbDetailCard } from './HRVOrbDetailCard';
 import { HRVCalendar } from './HRVCalendar';
 import { BloodPressureLog } from './BloodPressureLog';
 import { RecentActivityFeed } from './RecentActivityFeed';
+import { calculateAHAScore, calculateFinalRiskScore, AHABaseline } from '@/lib/risk-logic';
 import { FastCheckStatusCard } from './FastCheckStatusCard';
 import { EmergencyContactStrip } from './EmergencyContactStrip';
 import { ImOkTimerCard } from './ImOkTimerCard';
@@ -31,8 +32,9 @@ interface Contact {
 
 interface HealthProfile {
   bloodPressure: string | null;
-  hasDiabetes: boolean;
-  smokes: boolean;
+  diabetesStatus: string | null;
+  smokingStatus: string | null;
+  familyHistory: string | null;
   activityLevel: string | null;
 }
 
@@ -62,14 +64,13 @@ function parseBloodPressure(bp: string | null): {
 
 function computeRiskScore(profile: HealthProfile | null): number {
   if (!profile) return 30;
-  let score = 10;
-  if (profile.hasDiabetes) score += 25;
-  if (profile.smokes) score += 30;
-  if (profile.activityLevel === 'sedentary') score += 15;
-  else if (profile.activityLevel === 'moderate') score += 5;
-  const { status } = parseBloodPressure(profile.bloodPressure);
-  if (status === 'elevated') score += 20;
-  return Math.min(score, 100);
+  return calculateAHAScore({
+    bloodPressure: profile.bloodPressure || "",
+    diabetesStatus: profile.diabetesStatus || "no",
+    smokingStatus: profile.smokingStatus || "never",
+    familyHistory: profile.familyHistory || "no",
+    activityLevel: profile.activityLevel || "3-4",
+  });
 }
 
 function computeRiskFactor(profile: HealthProfile | null): {
@@ -78,32 +79,20 @@ function computeRiskFactor(profile: HealthProfile | null): {
   recommendation?: string;
 } {
   if (!profile) return { hasRisk: false };
-  if (profile.smokes)
-    return {
-      hasRisk: true,
-      riskFactor: 'Active smoker — significantly elevated stroke risk.',
-      recommendation: 'Talk to your doctor about a cessation program. Quitting can halve your risk within 2 years.',
-    };
-  if (profile.hasDiabetes)
-    return {
-      hasRisk: true,
-      riskFactor: 'Diabetes detected in your health profile.',
-      recommendation: 'Ensure your blood sugar is well-controlled and monitor blood pressure regularly.',
-    };
-  const { status } = parseBloodPressure(profile.bloodPressure);
-  if (status === 'elevated')
-    return {
-      hasRisk: true,
-      riskFactor: 'Elevated blood pressure recorded in your health profile.',
-      recommendation: 'Consider scheduling a check-up with your primary care physician.',
-    };
-  if (profile.activityLevel === 'sedentary')
-    return {
-      hasRisk: true,
-      riskFactor: 'Sedentary activity level detected.',
-      recommendation: 'Aim for 30 minutes of moderate activity per day to reduce stroke risk.',
-    };
-  return { hasRisk: false };
+  
+  const factors = [];
+  if (profile.smokingStatus === 'active') factors.push({ name: 'Smoking', msg: 'Active smoking significantly elevates stroke risk.' });
+  if (profile.diabetesStatus === 'yes') factors.push({ name: 'Diabetes', msg: 'Diabetes detected in your profile.' });
+  if (profile.familyHistory === 'yes') factors.push({ name: 'Family History', msg: 'Family history of stroke increases personal risk.' });
+  if (profile.activityLevel === '0') factors.push({ name: 'Activity', msg: 'Sedentary activity level detected.' });
+
+  if (factors.length === 0) return { hasRisk: false };
+
+  return {
+    hasRisk: true,
+    riskFactor: factors[0].msg,
+    recommendation: 'Monitor your vitals daily and consult with your physician regarding these risk factors.'
+  };
 }
 
 function getInitials(name: string) {
@@ -155,6 +144,15 @@ export function DashboardClient({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [monitoring.receiveVitals]
   );
+
+  // Called by WebcamPPG when scan finishes — passes the computed score directly
+  // so the dashboard updates immediately without waiting for the 30s polling cycle.
+  const handleScanComplete = useCallback(
+    (finalScore?: number) => monitoring.cancelQuickCheck(finalScore),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [monitoring.cancelQuickCheck]
+  );
+
 
   const bpHistory: number[][] =
     systolic && diastolic
@@ -289,7 +287,8 @@ export function DashboardClient({
                     <WebcamPPG 
                       isActiveExternally={monitoring.mode !== 'idle'} 
                       onVitalsUpdate={handleVitals}
-                      onComplete={monitoring.cancelQuickCheck}
+                      onComplete={handleScanComplete}
+                      healthProfile={healthProfile}
                     />
                   </div>
                 </div>
