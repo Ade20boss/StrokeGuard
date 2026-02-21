@@ -3,6 +3,7 @@ import json
 import logging
 import sqlite3
 import statistics
+import time
 from typing import Optional, List
 
 from fastapi import FastAPI, BackgroundTasks, HTTPException
@@ -25,6 +26,8 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="StrokeGuard API Gateway", version="2.1.0")
 
+# FIX: allow_origins=["*"] is incompatible with allow_credentials=True per the CORS spec.
+# Using explicit origins list. Set ALLOWED_ORIGINS in your .env for production.
 _raw_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:8000")
 ALLOWED_ORIGINS = [o.strip() for o in _raw_origins.split(",")]
 
@@ -53,6 +56,8 @@ init_db()
 
 def get_db_row(table: str, entry_id: str) -> dict:
     col = "state" if table == "patients" else "profile_data"
+    # NOTE: `col` and `table` are derived from internal constants only, not user input,
+    # so f-string interpolation here is safe from SQL injection.
     with sqlite3.connect("strokeguard.db") as conn:
         cursor = conn.execute(
             f"SELECT {col} FROM {table} WHERE id=?", (str(entry_id),)
@@ -90,6 +95,7 @@ class ProfilePayload(BaseModel):
     age: int
     history: str
     recent_activity: str
+    # FIX: Emergency contact is now per-patient, not hardcoded in the codebase.
     emergency_contact: str  # E.164 format, e.g. "+2347069547832"
 
     @field_validator("emergency_contact")
@@ -175,10 +181,10 @@ def calculate_composite_risk(
     return "YELLOW" if (sys >= 130 or dia > 80 or aha < 50) else "GREEN"
 
 
-def generate_ai_coach(
+async def generate_ai_coach(
     patient_id: str, sys: int, dia: int, hrv: float, aha: int
 ) -> str:
-    """AI Clinical Reasoning via Gemini 1.5 Pro."""
+    """AI Clinical Reasoning via Gemini 1.5 Pro (Asynchronous)."""
     profile = get_db_row("profiles", patient_id)
     if not profile:
         profile = {"name": "Patient", "age": "Unknown", "history": "None", "recent_activity": "Unknown"}
@@ -196,7 +202,11 @@ def generate_ai_coach(
             f"Current Context: {profile.get('recent_activity')}. "
             "Task: Provide immediate triage advice for this Yellow state."
         )
-        return model.generate_content(prompt).text.strip()
+        
+        # FIX: Await the async version of the generation method
+        response = await model.generate_content_async(prompt)
+        return response.text.strip()
+        
     except Exception as e:
         logger.error("Gemini AI coach failed for patient %s: %s", patient_id, e)
         name = profile.get("name", "Patient")
@@ -204,7 +214,6 @@ def generate_ai_coach(
             f"{name}, your vitals are slightly elevated. "
             "Please sit down, breathe slowly and deeply, and avoid strenuous activity."
         )
-
 
 def send_emergency_sms(
     patient_id: str,
@@ -239,6 +248,8 @@ def send_emergency_sms(
         )
         logger.info("Emergency SMS sent for patient %s to %s", patient_id, emergency_contact)
     except Exception as e:
+        # FIX: Log to both logger and DB so the failure is visible in monitoring
+        # and surfaced to the frontend via the /status endpoint.
         logger.error(
             "Twilio SMS FAILED for patient %s (contact: %s): %s",
             patient_id,
@@ -251,6 +262,7 @@ def send_emergency_sms(
 # --- API ENDPOINTS ---
 @app.post("/api/v1/patient/profile")
 async def update_profile(payload: ProfilePayload):
+    # FIX: Use .model_dump() — .dict() is deprecated in Pydantic v2.
     save_db_row("profiles", payload.patient_id, payload.model_dump())
     return {"status": "success", "message": "Profile updated"}
 
@@ -265,9 +277,7 @@ async def sync_vitals(payload: VitalsPayload, background_tasks: BackgroundTasks)
             detail=f"No profile found for patient {payload.patient_id}. Register the patient first.",
         )
 
-    # 1. Calculate SDNN server-side from raw BPM history (authoritative value).
-    # The validator above guarantees >= MIN_BPM_READINGS, so ValueError should not
-    # occur in practice — the fallback is a last-resort safety net only.
+    # 1. Calculate SDNN server-side
     try:
         sdnn = calculate_sdnn(payload.pulse_rate_history)
     except ValueError as e:
@@ -284,7 +294,7 @@ async def sync_vitals(payload: VitalsPayload, background_tasks: BackgroundTasks)
             payload.patient_id, sdnn, payload.prv_score,
         )
 
-    # 2. Triage Logic (uses backend-derived SDNN, not client value)
+    # 2. Triage Logic
     final_status = calculate_composite_risk(
         payload.aha_lifestyle_score,
         payload.systolic,
@@ -293,23 +303,30 @@ async def sync_vitals(payload: VitalsPayload, background_tasks: BackgroundTasks)
         payload.is_exercising,
     )
 
-    # 2. Load previous state
+    # 3. Load previous state
     prev = get_db_row("patients", payload.patient_id)
     sms_sent = prev.get("sms_sent", False)
     ai_advice = prev.get("ai_advice", "")
+    ai_last_gen_time = prev.get("ai_last_gen_time", 0) # Default to 0 epoch time
 
-    # 3. Mode-specific triggers
+    current_time = time.time()
 
-    # AI coach regenerates on every YELLOW sync, not just on first transition.
-    # This ensures advice stays fresh if vitals change while remaining in YELLOW.
+    # 4. Mode-specific triggers with Async and Cooldown
     if final_status == "YELLOW":
-        ai_advice = generate_ai_coach(
-            payload.patient_id,
-            payload.systolic,
-            payload.diastolic,
-            sdnn,
-            payload.aha_lifestyle_score,
-        )
+        # FIX: Only call Gemini if 5 minutes (300 seconds) have passed since the last call
+        if current_time - ai_last_gen_time > 300:
+            ai_advice = await generate_ai_coach(
+                payload.patient_id,
+                payload.systolic,
+                payload.diastolic,
+                sdnn,
+                payload.aha_lifestyle_score,
+            )
+            ai_last_gen_time = current_time
+            logger.info("Generated new AI advice for %s", payload.patient_id)
+        else:
+            # Keep the old advice; do not hit the API
+            logger.info("Skipped AI generation for %s (on cooldown)", payload.patient_id)
 
     # SMS: only for RED, only once per RED episode (reset when GREEN)
     if final_status == "RED" and not sms_sent:
@@ -321,25 +338,27 @@ async def sync_vitals(payload: VitalsPayload, background_tasks: BackgroundTasks)
             sdnn,
             payload.latitude,
             payload.longitude,
-            profile["emergency_contact"],  # per-patient contact from profile
+            profile["emergency_contact"],
         )
         sms_sent = True
 
     if final_status == "GREEN":
         sms_sent = False
         ai_advice = ""
+        # Reset cooldown when they return to green so the next yellow triggers immediately
+        ai_last_gen_time = 0 
 
-    # 4. Persistence
+    # 5. Persistence
     new_state = {
         "status": final_status,
-        "hrv": sdnn,                        # backend-calculated SDNN (authoritative)
-        "hrv_client": payload.prv_score,    # client-sent value, kept for debugging
+        "hrv": sdnn,
+        "hrv_client": payload.prv_score,
         "bp": f"{payload.systolic}/{payload.diastolic}",
         "sms_sent": sms_sent,
         "ai_advice": ai_advice,
+        "ai_last_gen_time": ai_last_gen_time,  # Persist the timestamp
         "is_exercising": payload.is_exercising,
         "current_mode": payload.mode,
-        # Clear any previous alert failure on a successful sync cycle
         "alert_failure": prev.get("alert_failure") if final_status == "RED" else None,
     }
     save_db_row("patients", payload.patient_id, new_state)
