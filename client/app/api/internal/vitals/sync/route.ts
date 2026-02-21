@@ -23,11 +23,11 @@ export async function POST(req: Request) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         patient_id: session.user.id,
+        mode: mode === 'ACTIVE' ? 'DEEP_SCAN' : 'QUICK_SCAN',
         pulse_rate_history: pulseRates,
         prv_score: prvScore ?? 0,
         aha_lifestyle_score: 50, // Should be fetched from profile ideally
         is_exercising: !!isExercising,
-        measurement_source: source || 'rppg_webcam',
       }),
     });
 
@@ -38,8 +38,11 @@ export async function POST(req: Request) {
     }
 
     const backendData = await backendRes.json();
-    // Expected response fields based on documentation logic:
-    // triage_status, ui_action, risk_score, sdnn, alert_failure, etc.
+    
+    const triageStatus = backendData.status || 'GREEN'; // Python returns "status"
+    let computedScore = 20;
+    if (triageStatus === 'YELLOW') computedScore = 60;
+    if (triageStatus === 'RED') computedScore = 90;
 
     // Calculate averages
     const avgPulseRate = pulseRates.reduce((a: number, b: number) => a + b, 0) / pulseRates.length;
@@ -50,11 +53,11 @@ export async function POST(req: Request) {
       data: {
         userId: session.user.id,
         mode: mode === 'ACTIVE' ? 'ACTIVE' : 'QUICK_CHECK',
-        triageStatus: backendData.triage_status || 'GREEN',
-        backendSdnn: backendData.sdnn,
-        finalScore: backendData.risk_score,
+        triageStatus: triageStatus,
+        backendSdnn: backendData.hrv || prvScore, // Python sends back calculated hrv
+        finalScore: computedScore,
         alertFailure: backendData.alert_failure || false,
-        aiAdvice: backendData.ai_advice || null,
+        aiAdvice: backendData.ai_coach || null, // Python returns ai_coach
         avgPulseRate,
         avgPrv: prvScore,
         // Insert raw readings as VitalSamples for local charts/auditing

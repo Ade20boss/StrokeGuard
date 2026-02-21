@@ -24,7 +24,19 @@ export async function GET(req: Request) {
     }
 
     const data = await backendRes.json();
-    return NextResponse.json(data);
+    
+    const triageStatus = data.status || 'GREEN'; // Python API returns "status"
+    let computedScore = 20;
+    if (triageStatus === 'YELLOW') computedScore = 60;
+    if (triageStatus === 'RED') computedScore = 90;
+    
+    return NextResponse.json({
+        triage_status: triageStatus,
+        risk_score: computedScore,
+        ai_advice: data.ai_advice || data.ai_coach || null,
+        alert_failure: data.alert_failure || false,
+        ui_action: data.ui_action || 'PASSIVE_MONITORING',
+    });
 
   } catch (error) {
     console.error("Status API error:", error);
